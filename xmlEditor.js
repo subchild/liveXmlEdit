@@ -248,16 +248,16 @@ var xmlEditor = (function(){
 			var nodeIndex = _nodeRefs.length-1,
 					nodeValue = _getNodeValue(node),
 					nodeAttrs = _getEditableAttributesHtml(node),
-					nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message["noTextValue"] + "</span>",
-					nodeHtml = '\
-				<li class="node ' + node.nodeName + ' '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">\
-					<div class="hitarea' + (isLast?' last':'') + '"/>\
-					<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>\
-					<ul class="nodeCore">\
-						<li><p class="nodeValue">'+ nodeValueStr +'</p></li>\
-						<li class="last"><a href="#" class="addChild">add child</a></li>\
-					</ul>\
-				</li>';
+					nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message.noTextValue + "</span>",
+					nodeHtml = '' +
+				'<li class="node ' + node.nodeName + ' '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
+					'<div class="hitarea' + (isLast?' last':'') + '"/>' +
+					'<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>' +
+					'<ul class="nodeCore">' +
+						'<li><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
+						'<li class="last"><a href="#" class="addChild">add child</a></li>' +
+					'</ul>' +
+				'</li>';
 			return nodeHtml;
 		},
 			
@@ -275,7 +275,9 @@ var xmlEditor = (function(){
 			_nodeRefs = []; // initialize node references (clear cache)
 			// local utility method for appending a single node
 			function appendNode(node){
-				if (node.nodeType!==1) return; // ignore text nodes, comments, etc.
+				if (node.nodeType!==1){
+					return; // ignore text nodes, comments, etc.
+				}
 				_nodeRefs.push(node); // add node to hash for future reference (cache)
 				var $xmlPrevSib = $(node).prev(),
 						realNextSib = _getRealNextSibling(node),
@@ -320,8 +322,12 @@ var xmlEditor = (function(){
 		*/
 		setNodeValue : function(node, value){
 			var $textNodes = _getTextNodes(node);
-			if ($textNodes.get(0)) $textNodes.get(0).nodeValue = value;
-			else node["textContent"] = value;
+			if ($textNodes.get(0)){
+				$textNodes.get(0).nodeValue = value;
+			}
+			else {
+				node.textContent = value;
+			}
 		},
 		
 		
@@ -329,28 +335,19 @@ var xmlEditor = (function(){
 		* Displays form for creating new child node, then processes its creation
 		*/
 		createChild: function($link, node){
-			var $linkParent = $link.parent(),
-					$field  = $("<input type='text' value='' class='newChild'/>"),
-					$submit = $("<button class='submit'>Create Node</button>").click(processCreateChild);
-					$cancel = $("<button class='killChild cancel'>Cancel</button>").click(function(){
-						$(this).remove();
-						$submit.remove();
-						$field.remove();					
-						$link.show();
-					});
+			// private function for creating child node
 			function processCreateChild(){
 				var childNodeName = $field.val(),
 						childNode,
 						$parent,
 						$child,
-						$childName,
 						$ulChildren;
 				try {
 					childNode = node.appendChild(_self.xml.createElement(childNodeName));
 					_nodeRefs.push(childNode);
 				}
 				catch (e){ 
-					GLR.messenger.inform({msg:_message["invalidNodeName"], mode:"error"});
+					GLR.messenger.inform({msg:_message.invalidNodeName, mode:"error"});
 					$field.val("").focus();
 					return false;
 				}
@@ -371,7 +368,16 @@ var xmlEditor = (function(){
 				$submit.remove();
 				$cancel.remove();
 				$link.show();
-			}
+			}			
+			var $linkParent = $link.parent(),
+					$field  = $("<input type='text' value='' class='newChild'/>"),
+					$submit = $("<button class='submit'>Create Node</button>").click(processCreateChild);
+					$cancel = $("<button class='killChild cancel'>Cancel</button>").click(function(){
+						$(this).remove();
+						$submit.remove();
+						$field.remove();					
+						$link.show();
+					});
 			$link.hide();
 			$field.bind("keydown", function(e){ if (e.keyCode==13 || e.keyCode==27){ processCreateChild(); } });
 			$linkParent.append($field).append($submit).append($cancel);
@@ -422,7 +428,7 @@ var xmlEditor = (function(){
 					$(node).attr(aName, aValue);
 				}
 				catch (e){
-					GLR.messenger.inform({msg:_message["invalidAttrName"],mode:"error"});
+					GLR.messenger.inform({msg:_message.invalidAttrName,mode:"error"});
 					$name.val("").focus();
 					return false;
 				}
@@ -447,11 +453,11 @@ var xmlEditor = (function(){
 		* Displays form for editing selected attribute and handles storing that value
 		*/
 		editAttribute: function($valueWrap, node, name, value){
-			var fieldWidth = parseInt($valueWrap.width()) + 30,
+			var fieldWidth = parseInt($valueWrap.width(),10) + 30,
 					$field     = $("<input type='text' name='' value='"+value+"' style='width:"+fieldWidth+"px;'/>"),
 					$killAttr  = $("<button class='killAttr icon'/>").click(function(event){
 						event.stopPropagation();																																					 
-						if (confirm(_message["removeAttrConfirm"])){
+						if (confirm(_message.removeAttrConfirm)){
 							$(node).removeAttr(name);
 							$(this).parent().remove();
 						}
@@ -461,7 +467,9 @@ var xmlEditor = (function(){
 				$(node).attr(name, value); // update value in XML
 				$field.remove();
 				$killAttr.remove();
-				if (value === "") value = "&nbsp;"
+				if (value === "") {
+					value = "&nbsp;";
+				}
 				$valueWrap.html(value).show();
 			}
 			$valueWrap.hide().after($field);
@@ -498,7 +506,7 @@ var xmlEditor = (function(){
 		* Removes node from XML (and displayed HTML representation)
 		*/
 		removeNode: function($link, node){
-			if (confirm(_message["removeNodeConfirm"])){
+			if (confirm(_message.removeNodeConfirm)){
 				$(node).remove();
 				var $prev = $link.parent().prev();
 				if ($prev.length){
@@ -506,7 +514,7 @@ var xmlEditor = (function(){
 					$prev.find(">div.hitarea").addClass("last");
 				}
 				$link.parent().remove();
-				GLR.messenger.inform({msg:_message["removeNodeSucess"], mode:"success"});
+				GLR.messenger.inform({msg:_message.removeNodeSucess, mode:"success"});
 				return true;
 			}
 			return false;
@@ -527,9 +535,9 @@ var xmlEditor = (function(){
 				async    : false,
 				url      : xmlPath,
 				dataType : "xml",
-				error    : function(){ GLR.messenger.show({msg:_message["xmlLoadProblem"], mode:"error"}); },
+				error    : function(){ GLR.messenger.show({msg:_message.xmlLoadProblem, mode:"error"}); },
 				success  : function(xml){
-					GLR.messenger.show({msg:_message["xmlLoadSuccess"], mode:"success"});
+					GLR.messenger.show({msg:_message.xmlLoadSuccess, mode:"success"});
 					_self.xml = xml;
 					callback();
 				}
@@ -554,10 +562,10 @@ var xmlEditor = (function(){
 		* Calls methods for generating HTML representation of XML, then makes it collapsible/expandable
 		*/
 		renderTree: function(){
-			GLR.messenger.show({msg:_message["renderingHtml"], mode:"loading"});
+			GLR.messenger.show({msg:_message.renderingHtml, mode:"loading"});
 			_self.renderAsHTML();
 			_self.$container.find("ul:first").addClass("treeview");
-			GLR.messenger.inform({msg:_message["readyToEdit"], mode:"success"});
+			GLR.messenger.inform({msg:_message.readyToEdit, mode:"success"});
 		}		
 		
 	};
