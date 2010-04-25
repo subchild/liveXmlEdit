@@ -26,9 +26,9 @@ Node editing/creation:
 
 
 /** 
-* Extend jQuery to support $.live() assignments of constant complexity.
-* (Thanks to Furf for this: http://blurf.furf.com/2009/09/jquery-live-from-new-york/ )
-*/
+ * Extend jQuery to support $.live() assignments of constant complexity.
+ * (Thanks to Furf for this: http://blurf.furf.com/2009/09/jquery-live-from-new-york/ )
+ */
 $.extend({
 	live: function(selector, type, fn){  
 		var jQElem = $(document);
@@ -39,11 +39,11 @@ $.extend({
 
 
 /**
-* xmlEditor
-* Loads an XML file and renders it as an editable HTML tree. 
-* Editing updates original XML DOM in real-time.  Updated XML can
-* be viewed/saved.
-*/
+ * xmlEditor
+ * Loads an XML file and renders it as an editable HTML tree. 
+ * Editing updates original XML DOM in real-time.  Updated XML can
+ * be viewed/saved.
+ */
 var xmlEditor = (function(){
 	
 	// private members //////////////////////////////////////////////////////	
@@ -65,9 +65,9 @@ var xmlEditor = (function(){
 	
 
 	/**
-	* Visits every node in the DOM and runs the passed function on it.
-	* @TODO extend to support processing in chunks using setTimeout()s
-	*/
+ 	 * Visits every node in the DOM and runs the passed function on it. 
+	 * @TODO extend to support processing in chunks using setTimeout()s
+	 */
 	function _traverseDOM(node, func){
 		func(node);
 		node = node.firstChild;
@@ -79,9 +79,9 @@ var xmlEditor = (function(){
 	
 	
 	/**
-	* Returns a string representing path to passed node. The path is not unique 
-	* (same path is returned for all sibling nodes of same type).
-	*/
+	 * Returns a string representing path to passed node. The path is not unique 
+	 * (same path is returned for all sibling nodes of same type).
+	 */
 	function _getNodePath(node){
 		var pathArray = [];
 		do {pathArray.push(node.nodeName); }
@@ -91,27 +91,27 @@ var xmlEditor = (function(){
 
 	
 	/**
-	* Binds custom event to private _$event object
-	*/
+	 * Binds custom event to private _$event object
+	 */
 	function _bind(eventName, dataOrFn, fnOrUndefined){
 		_$event.bind(eventName, dataOrFn, fnOrUndefined);
 	}
 
 
 	/**
-	* Unbinds custom event from private _$event object
-	*/
+	 * Unbinds custom event from private _$event object
+	 */
 	function _unbind(eventName, fn){
 		_$event.unbind(eventName, fn);
 	}
 	
 	
 	/**
-	* Retrieves XML node using nodeIndex attribute of passed $elem
-	* @param jQuery DOM element
-	* @return XML node
-	* @type DOM object
-	*/	
+	 * Retrieves XML node using nodeIndex attribute of passed $elem
+	 * @param jQuery DOM element
+	 * @return XML node
+	 * @type DOM object
+	 */	
 	function _getNodeFromElemAttr($elem){
 		var nodeRefIndex = $elem.closest("li.node").attr("nodeIndex"); // $elem.attr("nodeIndex");
 		return _nodeRefs[nodeRefIndex];
@@ -119,14 +119,15 @@ var xmlEditor = (function(){
 	
 	
 	/**
-	* Returns an HTML string representing node attributes
-	* @param  node XML DOM object
-	*/
+	 * Returns an HTML string representing node attributes
+	 * @param  node XML DOM object
+	 */
 	function _getEditableAttributesHtml(node){
 		var attrsHtml  = "<span class='nodeAttrs'>",
 				totalAttrs = node.attributes.length;
 		for (var i=0; i<totalAttrs; i++){
-			attrsHtml += "<span class='singleAttr'>"+node.attributes[i].name+"=\"<span class='attrValue' name='"+node.attributes[i].name+"'>" + ((node.attributes[i].value==="")?"&nbsp;":node.attributes[i].value) + "</span>\"</span>";
+			attrsHtml += "<span class='singleAttr'>"+node.attributes[i].name+"=\"<span class='attrValue' name='"+node.attributes[i].name+"'>" + 
+											((node.attributes[i].value==="")?"&nbsp;":node.attributes[i].value) + "</span>\"</span>";
 		}
 		attrsHtml += "<button class='addAttr icon'/></span>";
 		return attrsHtml;
@@ -134,21 +135,21 @@ var xmlEditor = (function(){
 
 	
 	/**
-	* Shortcut for assigning handler to the "enter" keypress
-	* @TODO not currently used due to scope issue. May not even be needed.
-	*/
+	 * Shortcut for assigning handler to the "enter" keypress
+	 * @TODO not currently used due to scope issue. May not even be needed.
+	 */
 	function _onEnterKey(event, fn){
 		if (event.keyCode==13 || event.keyCode==27){ fn(); }
 	}
 
 	
 	/**
-	* Retrieves non-empty text nodes which are children of passed XML node. 
-	* Ignores child nodes and comments. Strings which contain only blank spaces 
-	* or only newline characters are ignored as well.
-	* @param XML node (DOM object)
-	* @return jQuery collection of text nodes
-	*/		
+	 * Retrieves non-empty text nodes which are children of passed XML node. 
+	 * Ignores child nodes and comments. Strings which contain only blank spaces 
+	 * or only newline characters are ignored as well.
+	 * @param XML node (DOM object)
+	 * @return jQuery collection of text nodes
+	 */		
 	function _getTextNodes(node){
 		return $(node).contents().filter(function(){ 
 			return (
@@ -160,8 +161,8 @@ var xmlEditor = (function(){
 
 
 	/**
-	* Retrieves (text) node value
-	*/
+	 * Retrieves (text) node value
+	 */
 	function _getNodeValue(node){
 		var $textNodes = _getTextNodes(node),
 				textValue  = ($textNodes[0]) ? $.trim($textNodes[0].textContent) : "";		
@@ -170,15 +171,11 @@ var xmlEditor = (function(){
 	
 	
 	/**
-	* Detects if passed node has next sibling which is not a text node
-	* @param XML node
-	* @return node or false
-	*/
+	 * Detects if passed node has next sibling which is not a text node
+	 * @param XML node
+	 * @return node or false
+	 */
 	function _getRealNextSibling(node){
-// old, longer
-//		var next = node.nextSibling;
-//		while (next && next.nodeType != 1){ next = next.nextSibling; }
-//		return (next && next.nodeType==1) ? next : false;
 		do {node = node.nextSibling;}
 		while (node && node.nodeType != 1);
 		return node;
@@ -186,11 +183,11 @@ var xmlEditor = (function(){
 	
 	
 	/**
-	* Toggles display by swapping class name (collapsed/expanded) and toggling
-	* visibility of child ULs.
-	* @TODO make use of setTimeouts to address delay when many children
-	* @TODO if only allowing single expanded node at a time, will need to collapse others
-	*/
+	 * Toggles display by swapping class name (collapsed/expanded) and toggling
+	 * visibility of child ULs.
+	 * @TODO make use of setTimeouts to address delay when many children
+	 * @TODO if only allowing single expanded node at a time, will need to collapse others
+	 */
 	function _toggleNode(){
 		_$event.trigger("beforeToggleNode");
 		var $thisLi   = $(this);
@@ -206,8 +203,8 @@ var xmlEditor = (function(){
 
 
 	/**
-	* Returns number of XML nodes
-	*/
+	 * Returns number of XML nodes
+	 */
 	function _getXmlNodeCount(){
 		return $('*', _self.xml).length;
 	}
@@ -222,8 +219,8 @@ var xmlEditor = (function(){
 		$container : $(document.body), // initialize as body, but should override with specific container
 	
 		/**
-		* Assigns handlers for editing nodes and attributes. Happens only once, during renderAsHTML()
-		*/
+		 * Assigns handlers for editing nodes and attributes. Happens only once, during renderAsHTML()
+		 */
 		assignEditHandlers: function(){		
 			$.live("span.nodeName",   "click", function(){ _toggleNode.apply($(this).parent().get(0)); });
 			$.live("div.hitarea",     "click", function(){ _toggleNode.apply($(this).parent().get(0)); });
@@ -240,10 +237,10 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Returns HTML representation of passed node.
-		* Used during initial render, as well as when creating new child nodes.
-		* @TODO replace anchor with button
-		*/
+		 * Returns HTML representation of passed node.
+		 * Used during initial render, as well as when creating new child nodes.
+		 * @TODO replace anchor with button
+		 */
 		getNewNodeHTML: function(node, state, isLast){
 			var nodeIndex = _nodeRefs.length-1,
 					nodeValue = _getNodeValue(node),
@@ -263,9 +260,9 @@ var xmlEditor = (function(){
 			
 		
 		/**
-		* Renders XML as an HTML structure.  Uses _traverseDOM() to render each node.
-		* @TODO Explore use of documentFragment to optimize DOM manipulation
-		*/	
+		 * Renders XML as an HTML structure.  Uses _traverseDOM() to render each node.
+		 * @TODO Explore use of documentFragment to optimize DOM manipulation
+		 */	
 		renderAsHTML: function(){
 			_$event.trigger("beforeHtmlRendered");
 			var $parent = _self.$container.empty(),
@@ -317,9 +314,9 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Sets value of node to the passed text. Existing value is overwritten,
-		* otherwise new value is set.
-		*/
+		 * Sets value of node to the passed text. Existing value is overwritten,
+		 * otherwise new value is set.
+		 */
 		setNodeValue : function(node, value){
 			var $textNodes = _getTextNodes(node);
 			if ($textNodes.get(0)){
@@ -332,8 +329,8 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Displays form for creating new child node, then processes its creation
-		*/
+		 * Displays form for creating new child node, then processes its creation
+		 */
 		createChild: function($link, node){
 			// private function for creating child node
 			function processCreateChild(){
@@ -385,17 +382,17 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Returns string representation of private XML object
-		*/
+		 * Returns string representation of private XML object
+		 */
 		getXmlAsString: function(){
 			return (typeof XMLSerializer!=="undefined") ? (new window.XMLSerializer()).serializeToString(_self.xml) : _self.xml.xml;
 		},
 		
 	
 		/**
-		* Converts passed XML string into a DOM element. 
-		* @TODO Should use this instead of loading XML into DOM via $.ajax()
-		*/
+		 * Converts passed XML string into a DOM element. 
+		 * @TODO Should use this instead of loading XML into DOM via $.ajax()
+		 */
 		getXmlDOMFromString: function(xmlStr){
 			if (window.ActiveXObject && window.GetObject) {
 				var dom = new ActiveXObject('Microsoft.XMLDOM');
@@ -410,9 +407,9 @@ var xmlEditor = (function(){
 	
 		
 		/**
-		* Displays form for creating a new attribute and assigns handlers for storing that value
-		* @TODO Try using an HTML block (string) instead, and assign handlers using $.live()
-		*/
+		 * Displays form for creating a new attribute and assigns handlers for storing that value
+		 * @TODO Try using an HTML block (string) instead, and assign handlers using $.live()
+		 */
 		createAttribute: function($addLink, node){
 			var $parent = $addLink.parent(),
 					$form   = $("<form></form>"),
@@ -450,8 +447,8 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Displays form for editing selected attribute and handles storing that value
-		*/
+		 * Displays form for editing selected attribute and handles storing that value
+		 */
 		editAttribute: function($valueWrap, node, name, value){
 			var fieldWidth = parseInt($valueWrap.width(),10) + 30,
 					$field     = $("<input type='text' name='' value='"+value+"' style='width:"+fieldWidth+"px;'/>"),
@@ -480,10 +477,10 @@ var xmlEditor = (function(){
 	
 	
 		/**
-		* Displays form for editing text value of passed node, then processes new value
-		* @TODO Wrap in form.editValue
-		* @TODO use $.live()
-		*/
+		 * Displays form for editing text value of passed node, then processes new value
+		 * @TODO Wrap in form.editValue
+		 * @TODO use $.live()
+		 */
 		editValue: function($valueWrap, node, value){
 			var $field       = $("<textarea>"+value+"</textarea>"),
 					$btnCancel   = $("<button class='cancel' style='float:left;'>Cancel</button>"),
@@ -503,8 +500,8 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Removes node from XML (and displayed HTML representation)
-		*/
+		 * Removes node from XML (and displayed HTML representation)
+		 */
 		removeNode: function($link, node){
 			if (confirm(_message.removeNodeConfirm)){
 				$(node).remove();
@@ -522,12 +519,12 @@ var xmlEditor = (function(){
 			
 		
 		/**
-		* Loads file path from the first argument via Ajax and makes it available as XML DOM object.
-		* Sets the $container which will hold the HTML tree representation of the XML.
-		* @param xmlPath String representing path to an XML file
-		* @param containerSelector String representing CSS query selector used for creating jQuery reference to container
-		* @param callback function
-		*/
+		 * Loads file path from the first argument via Ajax and makes it available as XML DOM object.
+		 * Sets the $container which will hold the HTML tree representation of the XML.
+		 * @param xmlPath String representing path to an XML file
+		 * @param containerSelector String representing CSS query selector used for creating jQuery reference to container
+		 * @param callback function
+		 */
 		loadXmlFromFile: function(xmlPath, containerSelector, callback){
 			_self.$container = $(containerSelector);
 			$.ajax({
@@ -546,11 +543,11 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		* Creates a DOM representation of passed xmlString and stores it in the .xml property
-		* @param xmlString String representation of XML
-		* @param containerSelector String representing CSS query selector used for creating jQuery reference to container
-		* @param callback function
-		*/
+		 * Creates a DOM representation of passed xmlString and stores it in the .xml property
+		 * @param xmlString String representation of XML
+		 * @param containerSelector String representing CSS query selector used for creating jQuery reference to container
+		 * @param callback function
+		 */
 		loadXmlFromString: function(xmlString, containerSelector, callback){
 			_self.$container = $(containerSelector);
 			_self.xml        = _self.getXmlDOMFromString(xmlString);
@@ -559,8 +556,8 @@ var xmlEditor = (function(){
 		
 			
 		/**
-		* Calls methods for generating HTML representation of XML, then makes it collapsible/expandable
-		*/
+		 * Calls methods for generating HTML representation of XML, then makes it collapsible/expandable
+		 */
 		renderTree: function(){
 			GLR.messenger.show({msg:_message.renderingHtml, mode:"loading"});
 			_self.renderAsHTML();
