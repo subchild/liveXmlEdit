@@ -1,36 +1,49 @@
-/*************************************************************************
-**************************************************************************
-* @TODO
+/**
+ Copyright (c) 2010 Aleksandar Kolundzija
 
-Split up into modules:
-	- XML Loader
-	- XML Renderer
-	- XML Modifier
-	- XML Writer
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-Support comment editing and creation
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-Attribute editing/creation:
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+
+
+ @TODO
+
+	Support comment editing and creation
+
+	Attribute editing/creation:
 	- removal of attributes needs work
 	- typing should expand field width?
 	- support blur for saves?
 	
-Node editing/creation:
+	Node editing/creation:
 	- create node: add support for cancel (not remove)
 	- support node renaming
 	- support blur for saves?
 	
-- for invalid XML, present link to XML in browser window since it displays specific error
-- use GIF for logo so IE6 likes
-- add support for session based temp directories
-- better messaging
-- add support for creating a new XML document from scratch
-- DTD/XSD generation and exporting
-- auto save
-- revert option
-- support for UNDO
-
-**************************************************************************/
+	- for invalid XML, present link to XML in browser window since it displays specific error
+	- use GIF for logo so IE6 likes
+	- add support for session based temp directories
+	- better messaging
+	- add support for creating a new XML document from scratch
+	- DTD/XSD generation and exporting
+	- auto save
+	- revert option
+	- support for UNDO
+*/
 
 
 /**
