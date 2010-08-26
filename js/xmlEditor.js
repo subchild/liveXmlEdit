@@ -1,39 +1,40 @@
-/**
- Copyright (c) 2010 Aleksandar Kolundzija
+/*
+	Copyright (c) 2010 Aleksandar Kolundzija <ak@subchild.com>
+	Version 1.5
 
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in
- all copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- THE SOFTWARE.
-
-
- @TODO
-
+	Permission is hereby granted, free of charge, to any person obtaining a copy
+	of this software and associated documentation files (the "Software"), to deal
+	in the Software without restriction, including without limitation the rights
+	to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+	copies of the Software, and to permit persons to whom the Software is
+	furnished to do so, subject to the following conditions:
+	
+	The above copyright notice and this permission notice shall be included in
+	all copies or substantial portions of the Software.
+	
+	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+	IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+	FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+	AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+	LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+	OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+	THE SOFTWARE.
+	
+	@TODO:
+	Consider spliting app into modules: Loader, Renderer, Modifier, Writer
+	
 	Support comment editing and creation
-
+	
 	Attribute editing/creation:
-	- removal of attributes needs work
-	- typing should expand field width?
-	- support blur for saves?
-	
+		- removal of attributes needs work
+		- typing should expand field width?
+		- support blur for saves?
+		
 	Node editing/creation:
-	- create node: add support for cancel (not remove)
-	- support node renaming
-	- support blur for saves?
-	
+		- create node: add support for cancel (not remove)
+		- support node renaming
+		- support blur for saves?
+		
 	- for invalid XML, present link to XML in browser window since it displays specific error
 	- use GIF for logo so IE6 likes
 	- add support for session based temp directories
@@ -44,6 +45,32 @@
 	- revert option
 	- support for UNDO
 */
+
+
+
+/**
+ * Logable adds a log method to the passed object.
+ * @param obj       {Object}  Object which will get a new log() method
+ * @param objName   {String}  Optional parameter for displaying a string before each log output
+ * @param debugMode {boolean} Optional switch for disabling logging
+ */
+var loggable = function(obj /* , objName, debugMode */){
+	var objName   = arguments[1] || "",
+			debugMode = (typeof arguments[2]!=="undefined") ? arguments[2] : true;
+			prefix    = objName ? objName + ": " : "";
+	obj.log = (function(prefix){
+		return function(){
+			if (debugMode && typeof console!=="undefined"){
+				if (arguments.length){
+					arguments[0] = prefix + arguments[0];
+				}
+				console.log.apply(null, arguments);
+			}
+		}
+	})(prefix);
+	return obj;
+};
+
 
 
 /**
@@ -85,14 +112,21 @@ var xmlEditor = (function(){
 			node = node.nextSibling;
 		}
 	}
-
+	
+	
+	/**
+	 * @param  node {Object}
+	 * @return {Boolean}
+	 */
+	function _isCommentNode(node){
+		return (node.nodeType===8);
+	}
+	
 
 	/**
 	 * Retrieves XML node using nodeIndex attribute of passed $elem
-	 * @param jQuery DOM element
+	 * @param $elem {Object} jQuery DOM element
 	 * @return XML node
-	 * @type DOM object
-	 * @TODO move to core app
 	 */	
 	function _getNodeFromElemAttr($elem){
 		var nodeRefIndex = $elem.closest("li.node").attr("nodeIndex"); // $elem.attr("nodeIndex");
@@ -103,7 +137,6 @@ var xmlEditor = (function(){
 	/**
 	 * Returns a string representing path to passed node. The path is not unique 
 	 * (same path is returned for all sibling nodes of same type).
-	 * @TODO move to core app
 	 */
 	function _getNodePath(node){
 		var pathArray = [];
@@ -129,19 +162,22 @@ var xmlEditor = (function(){
 	}
 	
 	
-
-	
-	
 	/**
 	 * Returns an HTML string representing node attributes
-	 * @param  node XML DOM object
-	 * @TODO expose to renderer and modifier
+	 * @param  node {Object} DOM object
+	 * @return {String}
 	 */
 	function _getEditableAttributesHtml(node){
+		if (!node.attributes){
+			return "";
+		}
 		var attrsHtml  = "<span class='nodeAttrs'>",
 				totalAttrs = node.attributes.length;
 		for (var i=0; i<totalAttrs; i++){
-			attrsHtml += "<span class='singleAttr'>"+node.attributes[i].name+"=\"<span class='attrValue' name='"+node.attributes[i].name+"'>" + ((node.attributes[i].value==="")?"&nbsp;":node.attributes[i].value) + "</span>\"</span>";
+			attrsHtml += "<span class='singleAttr'>"+node.attributes[i].name + 
+										"=\"<span class='attrValue' name='"+node.attributes[i].name+"'>" + 
+										((node.attributes[i].value==="")?"&nbsp;":node.attributes[i].value) + 
+										"</span>\"</span>";
 		}
 		attrsHtml += "<button class='addAttr icon'/></span>";
 		return attrsHtml;
@@ -152,7 +188,7 @@ var xmlEditor = (function(){
 	 * Retrieves non-empty text nodes which are children of passed XML node. 
 	 * Ignores child nodes and comments. Strings which contain only blank spaces 
 	 * or only newline characters are ignored as well.
-	 * @param XML node (DOM object)
+	 * @param  node {Object} XML DOM object
 	 * @return jQuery collection of text nodes
 	 */		
 	function _getTextNodes(node){
@@ -167,26 +203,24 @@ var xmlEditor = (function(){
 
 	/**
 	 * Retrieves (text) node value
+	 * @param node {Object}
+	 * @return {String}
 	 */
 	function _getNodeValue(node){
 		var $textNodes = _getTextNodes(node),
-				textValue  = ($textNodes[0]) ? $.trim($textNodes[0].textContent) : "";		
+				textValue  = (node && _isCommentNode(node)) ? node.nodeValue : ($textNodes[0]) ? $.trim($textNodes[0].textContent) : "";
 		return textValue;
 	}
 	
 	
 	/**
 	 * Detects if passed node has next sibling which is not a text node
-	 * @param XML node
+	 * @param  node {Object} XML DOM object
 	 * @return node or false
 	 */
 	function _getRealNextSibling(node){
-// old, longer
-//		var next = node.nextSibling;
-//		while (next && next.nodeType != 1){ next = next.nextSibling; }
-//		return (next && next.nodeType==1) ? next : false;
-		do {node = node.nextSibling;}
-		while (node && node.nodeType != 1);
+		do { node = node.nextSibling; }
+		while (node && node.nodeType!==1);
 		return node;
 	}
 	
@@ -199,7 +233,7 @@ var xmlEditor = (function(){
 	 */
 	function _toggleNode(){
 		_$event.trigger("beforeToggleNode");
-		var $thisLi   = $(this);
+		var $thisLi = $(this);
 		$thisLi.find(">ul").toggle("normal"); // animate({height:"toggle"});		
 		if ($thisLi.hasClass("collapsable")){
 			$thisLi.removeClass("collapsable").addClass("expandable");
@@ -213,6 +247,7 @@ var xmlEditor = (function(){
 
 	/**
 	 * Returns number of XML nodes
+	 * @TODO Includes text nodes.  Should it?
 	 */
 	function _getXmlNodeCount(){
 		return $('*', _self.xml).length;
@@ -220,12 +255,14 @@ var xmlEditor = (function(){
 	
 	
 
-	/////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
 	var _self = {
 	
 		xml        : {}, // variable will hold the XML DOM object		
 		$container : $(document.body), // initialize as body, but should override with specific container
+		
+		
+		log: function(){}, // empty function. installed via $.loggable()
+		
 	
 		/**
 		 * Assigns handlers for editing nodes and attributes. Happens only once, during renderAsHTML()
@@ -250,8 +287,8 @@ var xmlEditor = (function(){
 					_self.createChild($this, node);
 				})
 				.delegate("span.attrValue", "click", function(){ 
-					var $this = $(this),
-							node  = _getNodeFromElemAttr($this);
+					var $this= $(this),
+							node = _getNodeFromElemAttr($this);
 					_self.editAttribute($this, node, $this.attr("name"), $this.text());
 				})
 				.delegate("button.addAttr", "click", function(){ 
@@ -278,44 +315,42 @@ var xmlEditor = (function(){
 				.delegate("li.node", "mouseout", function(){ 
 					$("#nodePath").empty();
 				});
-			
-//			$.live("span.nodeName",   "click", function(){ _toggleNode.apply($(this).parent().get(0)); });
-//			$.live("div.hitarea",     "click", function(){ _toggleNode.apply($(this).parent().get(0)); });
-//			$.live("p.nodeValue",     "click", function(){ var $this = $(this), node = _getNodeFromElemAttr($this); _self.editValue($this, node, _getNodeValue(node)); });
-//			$.live("a.addChild",      "click", function(event){ event.preventDefault(); var $this = $(this), node = _getNodeFromElemAttr($this); _self.createChild($this, node); });
-//			$.live("span.attrValue",  "click", function(){ var $this = $(this), node = _getNodeFromElemAttr($this); _self.editAttribute($this, node, $this.attr("name"), $this.text()); });					
-//			$.live("button.addAttr",  "click", function(){ var $this = $(this); node = _getNodeFromElemAttr($this); _self.createAttribute($this, node); });			
-//			$.live("button.killNode", "click", function(){ var $this = $(this), node = _getNodeFromElemAttr($this); _self.removeNode($this, node); });
-//			$.live("button.icon", "mouseover", function(){ $(this).css({opacity:1}); });
-//			$.live("button.icon", "mouseout",  function(){ $(this).css({opacity:0.5}); });
-//			$.live("li.node", "mouseover", function(){ var $this = $(this), node = _getNodeFromElemAttr($this); $("#nodePath").text(_getNodePath(node)); });
-//			$.live("li.node", "mouseout",  function(){ $("#nodePath").empty(); });
 		},
 		
 		
 		/**
 		 * Returns HTML representation of passed node.
 		 * Used during initial render, as well as when creating new child nodes.
+		 * @param node   {Object}
+		 * @param state  {String}  Ex: "expandable"
+		 * @param isLast {Boolean} Indicates whether there are additional node siblings
+		 * @returns {String}
 		 * @TODO replace anchor with button
 		 */
 		getNewNodeHTML: function(node, state, isLast){
-			if (node.nodeType===8){
-				// handle comment node:
-				nodeHtml = "<li><span class='comment'>&lt;!-- " + node.nodeValue + " --&gt;</span></li>";
+			var nodeIndex    = _nodeRefs.length-1,
+					nodeValue    = _getNodeValue(node),
+					nodeAttrs    = _getEditableAttributesHtml(node),
+					nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message["noTextValue"] + "</span>";
+					nodeHtml     = "";
+			if (_isCommentNode(node)){ // display comment node
+				nodeHtml = '<li class="node comment '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
+											'<div class="hitarea' + (isLast?' last':'') + '"/>' +
+											'<span class="nodeName">comment</span><button class="killNode icon"/>' +
+											'<ul class="nodeCore">' +
+												'<li class="last"><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
+											'</ul>' +
+										'</li>';
 			}
-			else {
-				var nodeIndex    = _nodeRefs.length-1,
-						nodeValue    = _getNodeValue(node),
-						nodeAttrs    = _getEditableAttributesHtml(node),
-						nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message["noTextValue"] + "</span>",
-						nodeHtml     =  '<li class="node ' + node.nodeName + ' '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
-															'<div class="hitarea' + (isLast?' last':'') + '"/>' +
-															'<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>' +
-															'<ul class="nodeCore">' +
-																'<li><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
-																'<li class="last"><a href="#" class="addChild">add child</a></li>' +
-															'</ul>' +
-														'</li>';
+			else { // display regular node
+				nodeHtml = '<li class="node ' + node.nodeName + ' '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
+											'<div class="hitarea' + (isLast?' last':'') + '"/>' +
+											'<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>' +
+											'<ul class="nodeCore">' +
+												'<li><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
+												'<li class="last"><a href="#" class="addChild">add child</a></li>' +
+											'</ul>' +
+										'</li>';
 			}
 			return nodeHtml;
 		},
@@ -326,16 +361,19 @@ var xmlEditor = (function(){
 		 * @TODO Explore use of documentFragment to optimize DOM manipulation
 		 */	
 		renderAsHTML: function(){
-			_$event.trigger("beforeHtmlRendered");
 			var $parent = _self.$container.empty(),
 					$trueParent,
 					parentRefs = [], // hash of references to previous sibling's parents. used for appending next siblings
 					parentRefIndex = 0;
+			_$event.trigger("beforeHtmlRendered");					
 			_nodeRefs = []; // initialize node references (clear cache)
-			// local utility method for appending a single node
+			/**
+			 * local utility method for appending a single node
+			 * @param node {Object}
+			 */
 			function appendNode(node){
-				if (node.nodeType!==1 && node.nodeType!==8){
-					return; // ignore text nodes, etc.
+				if (node.nodeType!==1 && !_isCommentNode(node)){ // exit unless regular node or comment
+					return;
 				}
 				_nodeRefs.push(node); // add node to hash for future reference (cache)
 				var $xmlPrevSib = $(node).prev(),
@@ -343,28 +381,38 @@ var xmlEditor = (function(){
 						nodeHtml    = _self.getNewNodeHTML(node, _initNodeState, !realNextSib),
 						$li         = $(nodeHtml),
 						$ul;
+						
+				_self.log(node.nodeName, parentRefIndex);
+						
 				if ($xmlPrevSib.length){ // appending node to previous sibling's parent
+					_self.log("appending to prev sibling's parent");
 					$parent = parentRefs[$xmlPrevSib.attr("parentRefIndex")];
 					$xmlPrevSib.removeAttr("parentRefIndex");
 					$(node).attr("parentRefIndex", parentRefIndex);
-					parentRefs[parentRefIndex] = $parent;		
+					parentRefs[parentRefIndex] = $parent;
 					parentRefIndex++;
 					$trueParent = $li;
 					$parent.append($li);
 				}
 				else { // appending a new child
+					_self.log("appending new child");
 					if ($trueParent){
 						$parent = $trueParent;
 						$trueParent = false;
 					}
-					// TODO: move ul.children into getNewNodeHTML().  here's how: check if $parent.find("ul.children"), if so use it, if not make root UL
-					// $ul = ($parent.find(">ul.children").length) ? $parent.find(">ul.children:first") : $("<ul class='root'></ul>");
+					/*
+					 @TODO: move ul.children into getNewNodeHTML(). 
+					 here's how: check if $parent.find("ul.children"), if so use it, if not make root UL
+					 // $ul = ($parent.find(">ul.children").length) ? $parent.find(">ul.children:first") : $("<ul class='root'></ul>");
+					*/
 					$ul = $("<ul class='children'></ul>").append($li); 
 					$parent.append($ul);
-					$parent = $li;
-					$(node).attr("parentRefIndex", parentRefIndex);
-					parentRefs[parentRefIndex] = $ul;
-					parentRefIndex++;
+					if (!_isCommentNode(node)){
+						$parent = $li;
+						$(node).attr("parentRefIndex", parentRefIndex);
+						parentRefs[parentRefIndex] = $ul;
+						parentRefIndex++;
+					}
 				}
 			} // end of appendNode()
 			_traverseDOM(_self.xml, appendNode);
@@ -378,7 +426,8 @@ var xmlEditor = (function(){
 		/**
 		 * Sets value of node to the passed text. Existing value is overwritten,
 		 * otherwise new value is set.
-		 * @TODO move to modifier
+		 * @param node  {Object}
+		 * @param value {String}
 		 */
 		setNodeValue : function(node, value){
 			var $textNodes = _getTextNodes(node);
@@ -389,7 +438,9 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Displays form for creating new child node, then processes its creation
-	 	 * @TODO need to separate this into rendering and modifying
+		 * @param $link {Object} jQuery object
+		 * @param node  {Object} 
+	 	 * @TODO need to separate this into render vs modify components
 	 	*/
 		createChild: function($link, node){
 			var $linkParent = $link.parent(),
@@ -459,7 +510,8 @@ var xmlEditor = (function(){
 		
 	
 		/**
-		 * Converts passed XML string into a DOM element. 
+		 * Converts passed XML string into a DOM element.
+		 * @param xmlStr {String}
 		 * @TODO Should use this instead of loading XML into DOM via $.ajax()
 		 */
 		getXmlDOMFromString: function(xmlStr){
@@ -477,6 +529,8 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Displays form for creating a new attribute and assigns handlers for storing that value
+		 * @param $addLink {Object} jQuery object
+		 * @param node     {Object}
 		 * @TODO Try using an HTML block (string) instead, and assign handlers using delegate()
 		 */
 		createAttribute: function($addLink, node){
@@ -499,7 +553,8 @@ var xmlEditor = (function(){
 					return false;
 				}
 				$form.remove();
-				$("<span class='singleAttr'>"+aName+"=\"<span class='attrValue' name='"+aName+"'>"+ ((aValue==="")?"&nbsp;":aValue) +"</span>\"</span>").insertBefore($addLink);
+				$("<span class='singleAttr'>"+aName+"=\"<span class='attrValue' name='"+aName+"'>" + 
+					((aValue==="")?"&nbsp;":aValue) +"</span>\"</span>").insertBefore($addLink);
 				$parent
 					.find("span.attrValue:last")
 						.click( function(e){ 
@@ -545,6 +600,10 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Displays form for editing selected attribute and handles storing that value
+		 * @param $valueWrap {Object}
+		 * @param node       {Object}
+		 * @param name       {String}
+		 * @param value      {String}
 		 */
 		editAttribute: function($valueWrap, node, name, value){
 			var fieldWidth = parseInt($valueWrap.width()) + 30,
@@ -581,9 +640,11 @@ var xmlEditor = (function(){
 	
 		/**
 		 * Displays form for editing text value of passed node, then processes new value
+		 * @param $valueWrap {Object}
+		 * @param node       {Object}
+		 * @param name       {String}		 
 		 * @TODO Wrap in form.editValue
 		 * @TODO use delegate()
-		 * @TODO move to modifier
 		 */
 		editValue: function($valueWrap, node, value){
 			var $field       = $("<textarea>"+value+"</textarea>"),
@@ -605,7 +666,8 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Removes node from XML (and displayed HTML representation)
-		 * @TODO move to modifier		 
+		 * @param $link {Object}
+		 * @param name  {String}
 		 */
 		removeNode: function($link, node){
 			if (confirm(_message["removeNodeConfirm"])){
@@ -626,9 +688,9 @@ var xmlEditor = (function(){
 		/**
 		 * Loads file path from the first argument via Ajax and makes it available as XML DOM object.
 		 * Sets the $container which will hold the HTML tree representation of the XML.
-		 * @param xmlPath String representing path to an XML file
-		 * @param containerSelector String representing CSS query selector used for creating jQuery reference to container
-		 * @param callback function
+		 * @param xmlPath           {String} Path to XML file
+		 * @param containerSelector {String} CSS query selector for creating jQuery reference to container
+		 * @param callback          {Function}
 		 */
 		loadXmlFromFile: function(xmlPath, containerSelector, callback){
 			_self.$container = $(containerSelector);
@@ -649,9 +711,9 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Creates a DOM representation of passed xmlString and stores it in the .xml property
-		 * @param xmlString String representation of XML
-		 * @param containerSelector String representing CSS query selector used for creating jQuery reference to container
-		 * @param callback function
+		 * @param xmlPath           {String} Path to XML file
+		 * @param containerSelector {String} CSS query selector for creating jQuery reference to container
+		 * @param callback          {Function}
 		 */
 		loadXmlFromString: function(xmlString, containerSelector, callback){
 			_self.$container = $(containerSelector);
@@ -673,9 +735,11 @@ var xmlEditor = (function(){
 	};
 	
 	// Constructor stuff
-	_bind("beforeHtmlRendered", function(){ console.time("renderHtml"); });
-	_bind("afterHtmlRendered",  function(){ console.timeEnd("renderHtml"); });
+	
+//	_bind("beforeHtmlRendered", function(){ console.time("renderHtml"); });
+//	_bind("afterHtmlRendered",  function(){ console.timeEnd("renderHtml"); });
 			
-	return _self;
+	return loggable(_self, "xmlEditor");
 	
 })();
+
