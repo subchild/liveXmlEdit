@@ -1,4 +1,4 @@
-<?
+<?php
 /**
  * Saves POST input as an XML file and returns a JSON response
  */
