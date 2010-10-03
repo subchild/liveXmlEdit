@@ -108,9 +108,9 @@ div#xml span.comment {font:italic 11px consolas,courier new,monospace; color:#99
 /* xml tree support */
 .treeview    {padding:0; margin:0; list-style:none;}
 .treeview ul {padding:0; margin:4px 0 0 0; list-style:none;}
-.treeview li {margin:0; padding:3px 0pt 3px 16px; background:url(../js/ext/jquery-treeview/images/treeview-default-line.gif) 0 0 no-repeat;}
+.treeview li {margin:0; padding:3px 0pt 3px 16px; background:url(../img/treeview-default-line.gif) 0 0 no-repeat;}
 
-.treeview div.hitarea {background:url(../js/ext/jquery-treeview/images/treeview-default.gif) -64px -25px no-repeat; height:16px; width:16px; margin-left:-16px; float:left;cursor:pointer;}
+.treeview div.hitarea {background:url(../img/treeview-default.gif) -64px -25px no-repeat; height:16px; width:16px; margin-left:-16px; float:left;cursor:pointer;}
 
 .treeview li.collapsable,
 .treeview li.expandable   {background-position:0 -176px;}
@@ -122,8 +122,8 @@ div#xml span.comment {font:italic 11px consolas,courier new,monospace; color:#99
 .treeview li.expandable  div.hitarea {background-position:-80px -3px;}
 
 .treeview li.last              {background-position:0 -1766px;}
-.treeview li.last.collapsable  {background:url(../js/ext/jquery-treeview/images/treeview-default.gif) 0 -111px no-repeat;}
-.treeview li.last.expandable   {background:url(../js/ext/jquery-treeview/images/treeview-default.gif) -32px -67px no-repeat;}
+.treeview li.last.collapsable  {background:url(../img/treeview-default.gif) 0 -111px no-repeat;}
+.treeview li.last.expandable   {background:url(../img/treeview-default.gif) -32px -67px no-repeat;}
 
 .treeview li.last.collapsable div.hitarea.last {background-position:0;}
 .treeview li.last.expandable  div.hitarea.last {background-position:0;}
