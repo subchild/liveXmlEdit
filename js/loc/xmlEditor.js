@@ -441,7 +441,7 @@ var xmlEditor = (function(){
 		 * @param $link {Object} jQuery object
 		 * @param node  {Object} 
 	 	 * @TODO need to separate this into render vs modify components
-	 	*/
+	 	 */
 		createChild: function($link, node){
 			var $linkParent = $link.parent(),
 					$field  = $("<input type='text' value='' class='newChild'/>"),
