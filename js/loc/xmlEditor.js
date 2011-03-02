@@ -49,10 +49,10 @@
 
 
 /**
- * Logable adds a log method to the passed object.
- * @param obj       {Object}  Object which will get a new log() method
- * @param objName   {String}  Optional parameter for displaying a string before each log output
- * @param debugMode {boolean} Optional switch for disabling logging
+ * Loggable adds a log method to the passed object.
+ * @param 	{Object}	obj  		Object which will get a new log() method
+ * @param 	{String}  	objName		Optional parameter for displaying a string before each log output
+ * @param 	{boolean} 	debugMode	Optional switch for disabling logging
  */
 var loggable = function(obj /* , objName, debugMode */){
 	var objName   = arguments[1] || "",
@@ -75,32 +75,34 @@ var loggable = function(obj /* , objName, debugMode */){
 
 /**
  * xmlEditor
- * Loads an XML file and renders it as an editable HTML tree. 
- * Editing updates original XML DOM in real-time.  Updated XML can
- * be viewed/saved.
+ * Application for loading an XML file into memory, rendering it as an editable HTML tree,
+ * and providing functionality for editing the memory copy of the file in real time. 
+ * Updated XML can be converted to a string and passed to a separate process for saving.
  */
 var xmlEditor = (function(){
 	
-	// private members //////////////////////////////////////////////////////	
+	// private members
 	var _nodeRefs      = [],    // will hold references to XML nodes   
-			_initNodeState = "expandable",			
-			_$event        = $({}), // beforeHtmlRendered, afterHtmlRendered, beforeToggleNode, afterToggleNode
-			_message       = {
-				"renderingHtml"     : "Rendering XML structure...",
-				"readyToEdit"       : "Ready to edit.",
-				"removeAttrConfirm" : "Are you sure want to delete this attribute and its value?",
-				"invalidAttrName"   : "The attribute name you entered is invalid.\nPlease try again.",
-				"invalidNodeName"   : "The node name you entered is invalid.\nPlease try again.",
-				"noTextValue"       : "(No text value. Click to edit.)",
-				"removeNodeSuccess" : "Removed node.",
-				"removeNodeConfirm" : "Are you sure you want to remove this node?",
-				"xmlLoadSuccess"    : "XML file was loaded successfully.",
-				"xmlLoadProblem"    : "Ther was a problem loading XML file."
-			};
-	
+		_initNodeState = "expandable",			
+		_$event        = $({}), // beforeHtmlRendered, afterHtmlRendered, beforeToggleNode, afterToggleNode
+		_message       = {
+			"renderingHtml"     : "Rendering XML structure...",
+			"readyToEdit"       : "Ready to edit.",
+			"removeAttrConfirm" : "Are you sure want to delete this attribute and its value?",
+			"invalidAttrName"   : "The attribute name you entered is invalid.\nPlease try again.",
+			"invalidNodeName"   : "The node name you entered is invalid.\nPlease try again.",
+			"noTextValue"       : "(No text value. Click to edit.)",
+			"removeNodeSuccess" : "Removed node.",
+			"removeNodeConfirm" : "Are you sure you want to remove this node?",
+			"xmlLoadSuccess"    : "XML file was loaded successfully.",
+			"xmlLoadProblem"    : "Ther was a problem loading XML file."
+		};
+
 
 	/**
 	 * Visits every node in the DOM and runs the passed function on it.
+	 * @param	{Object}	node	Starting node.
+	 * @param	{Function}	func	Function to execute on starting node and all of its descendents.
 	 * @TODO extend to support processing in chunks using setTimeout()s
 	 * @TODO move to renderer component
 	 */
@@ -115,8 +117,9 @@ var xmlEditor = (function(){
 	
 	
 	/**
-	 * @param  node {Object}
-	 * @return {Boolean}
+	 * Detects whether the passed node is a comment.
+	 * @param 	{Object}	node	An XML or DOM element.
+	 * @return 	{Boolean}
 	 */
 	function _isCommentNode(node){
 		return (node.nodeType===8);
@@ -125,8 +128,8 @@ var xmlEditor = (function(){
 
 	/**
 	 * Retrieves XML node using nodeIndex attribute of passed $elem
-	 * @param $elem {Object} jQuery DOM element
-	 * @return XML node
+	 * @param 	{Object} 	$elem	jQuery DOM element
+	 * @return 	{Object}			A DOM element
 	 */	
 	function _getNodeFromElemAttr($elem){
 		var nodeRefIndex = $elem.closest("li.node").attr("nodeIndex"); // $elem.attr("nodeIndex");
@@ -137,6 +140,8 @@ var xmlEditor = (function(){
 	/**
 	 * Returns a string representing path to passed node. The path is not unique 
 	 * (same path is returned for all sibling nodes of same type).
+	 * @param 	{Object}	node	A DOM element
+	 * @return 	{String}
 	 */
 	function _getNodePath(node){
 		var pathArray = [];
@@ -148,6 +153,9 @@ var xmlEditor = (function(){
 	
 	/**
 	 * Binds custom event to private _$event object
+	 * @param	{String}	Name of custom event
+	 * @apram	{mixed}		Data to pass to event handler, or the handler itself (if no data is to be passed)
+	 * @param 	{Function}	Handler function (Optional, if already passed as second argument)
 	 */
 	function _bind(eventName, dataOrFn, fnOrUndefined){
 		_$event.bind(eventName, dataOrFn, fnOrUndefined);
@@ -156,6 +164,8 @@ var xmlEditor = (function(){
 
 	/**
 	 * Unbinds custom event from private _$event object
+	 * @param	{String}	Name of custom event
+	 * @param	{Function}	Handler function
 	 */
 	function _unbind(eventName, fn){
 		_$event.unbind(eventName, fn);
@@ -164,7 +174,7 @@ var xmlEditor = (function(){
 	
 	/**
 	 * Returns an HTML string representing node attributes
-	 * @param  node {Object} DOM object
+	 * @param  {Object} 	node 	DOM object
 	 * @return {String}
 	 */
 	function _getEditableAttributesHtml(node){
@@ -188,8 +198,8 @@ var xmlEditor = (function(){
 	 * Retrieves non-empty text nodes which are children of passed XML node. 
 	 * Ignores child nodes and comments. Strings which contain only blank spaces 
 	 * or only newline characters are ignored as well.
-	 * @param  node {Object} XML DOM object
-	 * @return jQuery collection of text nodes
+	 * @param  	{Object} 	node	XML DOM object
+	 * @return 	{jQuery}	jQuery collection of text nodes
 	 */		
 	function _getTextNodes(node){
 		return $(node).contents().filter(function(){ 
@@ -203,8 +213,8 @@ var xmlEditor = (function(){
 
 	/**
 	 * Retrieves (text) node value
-	 * @param node {Object}
-	 * @return {String}
+	 * @param 	{Object}	node	XML DOM object
+	 * @return 	{String}
 	 */
 	function _getNodeValue(node){
 		var $textNodes = _getTextNodes(node),
@@ -215,8 +225,8 @@ var xmlEditor = (function(){
 	
 	/**
 	 * Detects if passed node has next sibling which is not a text node
-	 * @param  node {Object} XML DOM object
-	 * @return node or false
+	 * @param 	{Object}	node	XML DOM object
+	 * @return 	{mixed} 	Returns found node or false if one doesn't exist
 	 */
 	function _getRealNextSibling(node){
 		do { node = node.nextSibling; }
@@ -247,6 +257,7 @@ var xmlEditor = (function(){
 
 	/**
 	 * Returns number of XML nodes
+	 * @return	{Number}
 	 * @TODO Includes text nodes.  Should it?
 	 */
 	function _getXmlNodeCount(){
@@ -265,7 +276,8 @@ var xmlEditor = (function(){
 		
 	
 		/**
-		 * Assigns handlers for editing nodes and attributes. Happens only once, during renderAsHTML()
+		 * Assigns handlers for editing nodes and attributes. 
+		 * Happens only once, during renderAsHTML()
 		 */
 		assignEditHandlers: function(){		
 			$("#xml")
@@ -321,44 +333,46 @@ var xmlEditor = (function(){
 		/**
 		 * Returns HTML representation of passed node.
 		 * Used during initial render, as well as when creating new child nodes.
-		 * @param node   {Object}
-		 * @param state  {String}  Ex: "expandable"
-		 * @param isLast {Boolean} Indicates whether there are additional node siblings
+	 	 * @param 	{Object}	node	XML DOM object
+		 * @param 	{String}  	state	Ex: "expandable"
+		 * @param 	{Boolean}	isLast Indicates whether there are additional node siblings
 		 * @returns {String}
 		 * @TODO replace anchor with button
 		 */
 		getNewNodeHTML: function(node, state, isLast){
 			var nodeIndex    = _nodeRefs.length-1,
-					nodeValue    = _getNodeValue(node),
-					nodeAttrs    = _getEditableAttributesHtml(node),
-					nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message["noTextValue"] + "</span>";
-					nodeHtml     = "";
+				nodeValue    = _getNodeValue(node),
+				nodeAttrs    = _getEditableAttributesHtml(node),
+				nodeValueStr = (nodeValue) ? nodeValue : "<span class='noValue'>" + _message["noTextValue"] + "</span>";
+				nodeHtml     = "";
+				
 			if (_isCommentNode(node)){ // display comment node
 				nodeHtml = '<li class="node comment '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
-											'<div class="hitarea' + (isLast?' last':'') + '"/>' +
-											'<span class="nodeName">comment</span><button class="killNode icon"/>' +
-											'<ul class="nodeCore">' +
-												'<li class="last"><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
-											'</ul>' +
-										'</li>';
+								'<div class="hitarea' + (isLast?' last':'') + '"/>' +
+								'<span class="nodeName">comment</span><button class="killNode icon"/>' +
+								'<ul class="nodeCore">' +
+									'<li class="last"><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
+								'</ul>' +
+							'</li>';
 			}
 			else { // display regular node
 				nodeHtml = '<li class="node ' + node.nodeName + ' '+ state + (isLast?' last':'') +'" nodeIndex="'+nodeIndex+'">' +
-											'<div class="hitarea' + (isLast?' last':'') + '"/>' +
-											'<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>' +
-											'<ul class="nodeCore">' +
-												'<li><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
-												'<li class="last"><a href="#" class="addChild">add child</a></li>' +
-											'</ul>' +
-										'</li>';
+								'<div class="hitarea' + (isLast?' last':'') + '"/>' +
+								'<span class="nodeName">'+ node.nodeName +'</span>' + nodeAttrs + '<button class="killNode icon"/>' +
+								'<ul class="nodeCore">' +
+									'<li><p class="nodeValue">'+ nodeValueStr +'</p></li>' +
+									'<li class="last"><a href="#" class="addChild">add child</a></li>' +
+								'</ul>' +
+							'</li>';
 			}
 			return nodeHtml;
 		},
 			
 		
 		/**
-		 * Renders XML as an HTML structure.  Uses _traverseDOM() to render each node.
-		 * @TODO Explore use of documentFragment to optimize DOM manipulation
+		 * Renders XML as an HTML structure. Uses _traverseDOM() to render each node.
+		 * @see	_traverseDom
+		 * @TODO Explore use of documentFragment to optimize DOM manipulation		
 		 */	
 		renderAsHTML: function(){
 			var $parent = _self.$container.empty(),
@@ -369,7 +383,7 @@ var xmlEditor = (function(){
 			_nodeRefs = []; // initialize node references (clear cache)
 			/**
 			 * local utility method for appending a single node
-			 * @param node {Object}
+			 * @param 	{Object}	node 	An XML DOM object.
 			 */
 			function appendNode(node){
 				if (node.nodeType!==1 && !_isCommentNode(node)){ // exit unless regular node or comment
@@ -415,6 +429,7 @@ var xmlEditor = (function(){
 					}
 				}
 			} // end of appendNode()
+			
 			_traverseDOM(_self.xml, appendNode);
 			$("*", _self.xml).removeAttr("parentRefIndex"); // clean up remaining parentRefIndex-es
 			_self.assignEditHandlers(); // bind in core app afterHtmlRendered
@@ -426,8 +441,8 @@ var xmlEditor = (function(){
 		/**
 		 * Sets value of node to the passed text. Existing value is overwritten,
 		 * otherwise new value is set.
-		 * @param node  {Object}
-		 * @param value {String}
+	 	 * @param 	{Object}	node	XML DOM object
+		 * @param 	{String}	value
 		 */
 		setNodeValue : function(node, value){
 			var $textNodes = _getTextNodes(node);
@@ -438,27 +453,30 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Displays form for creating new child node, then processes its creation
-		 * @param $link {Object} jQuery object
-		 * @param node  {Object} 
+		 * @param 	{Object} 	$link	jQuery object
+	 	 * @param 	{Object}	node	XML DOM object
 	 	 * @TODO need to separate this into render vs modify components
 	 	 */
 		createChild: function($link, node){
 			var $linkParent = $link.parent(),
-					$field  = $("<input type='text' value='' class='newChild'/>"),
-					$submit = $("<button class='submit'>Create Node</button>").click(processCreateChild);
-					$cancel = $("<button class='killChild cancel'>Cancel</button>").click(function(){
-						$(this).remove();
-						$submit.remove();
-						$field.remove();					
-						$link.show();
-					});
+				$field      = $("<input type='text' value='' class='newChild'/>"),
+				$submit     = $("<button class='submit'>Create Node</button>").click(processCreateChild);
+				$cancel     = $("<button class='killChild cancel'>Cancel</button>").click(function(){
+					$(this).remove();
+					$submit.remove();
+					$field.remove();					
+					$link.show();
+				});
+			/**
+			 * Private method for creating a child node.
+			 */
 			function processCreateChild(){
 				var childNodeName = $field.val(),
-						childNode,
-						$parent,
-						$child,
-						$childName,
-						$ulChildren;
+					childNode,
+					$parent,
+					$child,
+					$childName,
+					$ulChildren;
 				try {
 					childNode = node.appendChild(_self.xml.createElement(childNodeName));
 					_nodeRefs.push(childNode);
@@ -501,6 +519,7 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Returns string representation of private XML object
+		 * @return	{String}
 		 */
 		getXmlAsString: function(){
 			return (typeof XMLSerializer!=="undefined") ? 
@@ -511,7 +530,9 @@ var xmlEditor = (function(){
 	
 		/**
 		 * Converts passed XML string into a DOM element.
-		 * @param xmlStr {String}
+		 * @param 		{String}			xmlStr
+		 * @return		{Object}			XML DOM object
+		 * @exception	{GeneralException}	Throws exception if no XML parser is available.
 		 * @TODO Should use this instead of loading XML into DOM via $.ajax()
 		 */
 		getXmlDOMFromString: function(xmlStr){
@@ -529,21 +550,23 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Displays form for creating a new attribute and assigns handlers for storing that value
-		 * @param $addLink {Object} jQuery object
-		 * @param node     {Object}
+		 * @param	{Object} 	$addLink 	jQuery object
+		 * @param 	{Objecct}	node
 		 * @TODO Try using an HTML block (string) instead, and assign handlers using delegate()
 		 */
 		createAttribute: function($addLink, node){
 			var $parent = $addLink.parent(),
-					$form   = $("<form></form>"),
-					$name   = $("<input type='text' class='newAttrName'  name='attrName'  value=''/>"),
-					$value  = $("<input type='text' class='newAttrValue' name='attrValue' value=''/>"),
-					$submit = $("<button>Create Attribute</button>"),
-					$cancel = $("<button class='cancel'>Cancel</button>");		
-			// private function for processing the values
+				$form   = $("<form></form>"),
+				$name   = $("<input type='text' class='newAttrName'  name='attrName'  value=''/>"),
+				$value  = $("<input type='text' class='newAttrValue' name='attrValue' value=''/>"),
+				$submit = $("<button>Create Attribute</button>"),
+				$cancel = $("<button class='cancel'>Cancel</button>");		
+			/**
+			 * Private function for processing the values.
+			 */
 			function processNewAttribute(){
 				var aName  = $name.val(),
-						aValue = $value.val();
+					aValue = $value.val();
 				try { 
 					$(node).attr(aName, aValue);
 				}
@@ -599,22 +622,25 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		 * Displays form for editing selected attribute and handles storing that value
-		 * @param $valueWrap {Object}
-		 * @param node       {Object}
-		 * @param name       {String}
-		 * @param value      {String}
+		 * Displays form for editing selected attribute and handles storing of that value.
+		 * @param {Object}	$valueWrap
+		 * @param {Object}	node
+		 * @param {String}	name
+		 * @param {String}	value
 		 */
 		editAttribute: function($valueWrap, node, name, value){
 			var fieldWidth = parseInt($valueWrap.width()) + 30,
-					$field     = $("<input type='text' name='' value='"+value+"' style='width:"+fieldWidth+"px;'/>"),
-					$killAttr  = $("<button class='killAttr icon'/>").click(function(e){
-						e.stopPropagation();																																					 
-						if (confirm(_message["removeAttrConfirm"])){
-							$(node).removeAttr(name);
-							$(this).parent().remove();
-						}
-					});
+				$field     = $("<input type='text' name='' value='"+value+"' style='width:"+fieldWidth+"px;'/>"),
+				$killAttr  = $("<button class='killAttr icon'/>").click(function(e){
+					e.stopPropagation();																																					 
+					if (confirm(_message["removeAttrConfirm"])){
+						$(node).removeAttr(name);
+						$(this).parent().remove();
+					}
+				});
+			/**
+			 * 
+			 */
 			function updateAttribute(){
 				value = $field.val();
 				$(node).attr(name, value); // update value in XML
@@ -640,17 +666,17 @@ var xmlEditor = (function(){
 	
 		/**
 		 * Displays form for editing text value of passed node, then processes new value
-		 * @param $valueWrap {Object}
-		 * @param node       {Object}
-		 * @param name       {String}		 
+		 * @param {Object}	$valueWrap
+		 * @param {Object}	node
+		 * @param {String}	name
 		 * @TODO Wrap in form.editValue
 		 * @TODO use delegate()
 		 */
 		editValue: function($valueWrap, node, value){
 			var $field       = $("<textarea>"+value+"</textarea>"),
-					$btnCancel   = $("<button class='cancel' style='float:left;'>Cancel</button>"),
-					$btnSubmit   = $("<button class='submit' style='float:right;'>Set Text Value</button>"),
-					$btnWrap     = $("<div class='editTextValueButtons'></div>").append($btnCancel).append($btnSubmit);
+				$btnCancel   = $("<button class='cancel' style='float:left;'>Cancel</button>"),
+				$btnSubmit   = $("<button class='submit' style='float:right;'>Set Text Value</button>"),
+				$btnWrap     = $("<div class='editTextValueButtons'></div>").append($btnCancel).append($btnSubmit);
 			$valueWrap.hide().parent().append($field).append($btnWrap);
 			$field.get(0).focus();
 			$btnSubmit.click(function(){
@@ -665,9 +691,10 @@ var xmlEditor = (function(){
 		
 		
 		/**
-		 * Removes node from XML (and displayed HTML representation)
-		 * @param $link {Object}
-		 * @param name  {String}
+		 * Removes node from XML (and from displayed HTML representation).
+		 * @param	{Object}	$link
+		 * @param 	{String}	name
+		 * @return	{Boolean}
 		 */
 		removeNode: function($link, node){
 			if (confirm(_message["removeNodeConfirm"])){
@@ -688,9 +715,9 @@ var xmlEditor = (function(){
 		/**
 		 * Loads file path from the first argument via Ajax and makes it available as XML DOM object.
 		 * Sets the $container which will hold the HTML tree representation of the XML.
-		 * @param xmlPath           {String} Path to XML file
-		 * @param containerSelector {String} CSS query selector for creating jQuery reference to container
-		 * @param callback          {Function}
+		 * @param {String}		xmlPath          	Path to XML file
+		 * @param {String}		containerSelector	CSS query selector for creating jQuery reference to container
+		 * @param {Function}	callback
 		 */
 		loadXmlFromFile: function(xmlPath, containerSelector, callback){
 			_self.$container = $(containerSelector);
@@ -711,9 +738,9 @@ var xmlEditor = (function(){
 		
 		/**
 		 * Creates a DOM representation of passed xmlString and stores it in the .xml property
-		 * @param xmlPath           {String} Path to XML file
-		 * @param containerSelector {String} CSS query selector for creating jQuery reference to container
-		 * @param callback          {Function}
+		 * @param {String}		xmlPath          	Path to XML file
+		 * @param {String}		containerSelector	CSS query selector for creating jQuery reference to container
+		 * @param {Function}	callback
 		 */
 		loadXmlFromString: function(xmlString, containerSelector, callback){
 			_self.$container = $(containerSelector);
@@ -734,11 +761,11 @@ var xmlEditor = (function(){
 		
 	};
 	
-	// Constructor stuff
-	
-//	_bind("beforeHtmlRendered", function(){ console.time("renderHtml"); });
-//	_bind("afterHtmlRendered",  function(){ console.timeEnd("renderHtml"); });
-			
+	if (false){ // enable for measuring performance
+		_bind("beforeHtmlRendered", function(){ console.time("renderHtml"); });
+		_bind("afterHtmlRendered",  function(){ console.timeEnd("renderHtml"); });
+	}
+				
 	return loggable(_self, "xmlEditor");
 	
 })();
