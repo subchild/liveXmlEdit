@@ -289,28 +289,30 @@ var xmlEditor = (function(){
 				})
 				.delegate("p.nodeValue", "click", function(){ 
 					var $this = $(this), 
-							node  = _getNodeFromElemAttr($this);
+						node  = _getNodeFromElemAttr($this);
 					_self.editValue($this, node, _getNodeValue(node));
 				})
 				.delegate("a.addChild", "click", function(e){
 					e.preventDefault();
 					var $this = $(this),
-							node  = _getNodeFromElemAttr($this);
+						node  = _getNodeFromElemAttr($this);
 					_self.createChild($this, node);
 				})
 				.delegate("span.attrValue", "click", function(){ 
 					var $this= $(this),
-							node = _getNodeFromElemAttr($this);
+						node = _getNodeFromElemAttr($this);
 					_self.editAttribute($this, node, $this.attr("name"), $this.text());
 				})
-				.delegate("button.addAttr", "click", function(){ 
+				.delegate("button.addAttr", "click", function(e){ 
+					e.preventDefault();
 					var $this = $(this),
-							node  = _getNodeFromElemAttr($this);
+						node  = _getNodeFromElemAttr($this);
 					_self.createAttribute($this, node);
 				})
-				.delegate("button.killNode", "click", function(){
+				.delegate("button.killNode", "click", function(e){
+					e.preventDefault();
 					var $this = $(this),
-							node  = _getNodeFromElemAttr($this);
+						node  = _getNodeFromElemAttr($this);
 					_self.removeNode($this, node);
 				})
 				.delegate("button.icon", "mouseover", function(){
@@ -321,7 +323,7 @@ var xmlEditor = (function(){
 				})
 				.delegate("li.node", "mouseover", function(){ 
 					var $this = $(this),
-							node  = _getNodeFromElemAttr($this);
+						node  = _getNodeFromElemAttr($this);
 					$("#nodePath").text(_getNodePath(node));
 				})
 				.delegate("li.node", "mouseout", function(){ 
