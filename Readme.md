@@ -6,4 +6,4 @@ values by clicking on them directly. If you don't see a dedicated save (Submit) 
 use the ENTER key to save. Once you are done editing the file, you can generate the 
 new version and save it.
 
-Use it here: livexmledit.com
+Use it here: [LiveXmlEdit.com](https://livexmledit.com)
